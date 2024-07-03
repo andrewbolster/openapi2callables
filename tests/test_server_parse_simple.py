@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """
-Tests for `openapi2tools.parse` package, on 'live' OpenAPI specs from `openapi2tools.server`
+Tests for `openapi2callables.parse` package, on 'live' OpenAPI specs from `openapi2callables.server`
 """
 import pytest
 from fastapi.testclient import TestClient
-from openapi2tools.parse import parse_spec
-from openapi2tools.server import app
+from openapi2callables.parse import parse_spec
+from openapi2callables.server import app
 
 
 @pytest.fixture

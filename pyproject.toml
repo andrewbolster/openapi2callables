@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "openapi2tools"
-homepage = "https://github.com/andrewbolster/openapi2tools"
+name = "openapi2callables"
+homepage = "https://github.com/andrewbolster/openapi2callables"
 version = "0.1.0"
 description = "Experiment in parsing and projecting OpenAPI endpoints into OpenAI/GenericLLM compatible Tools (but should also be generic enough for non-llm directed usage...)"
 authors = ["Andrew Bolster <andrew@bolster.online>"]
 readme = "README.md"
-packages = [{include = "openapi2tools"}]
+packages = [{include = "openapi2callables"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -21,4 +21,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-openapi2tools = "openapi2tools.cli:cli"
+openapi2callables = "openapi2callables.cli:cli"

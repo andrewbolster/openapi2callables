@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-"""Tests for `openapi2tools` package."""
+"""Tests for `openapi2callables` package."""
 import pytest
-from openapi2tools.parse import parse_spec
+from openapi2callables.parse import parse_spec
 
 
 def test_parse_spec_basic():

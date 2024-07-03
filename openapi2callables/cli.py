@@ -1,4 +1,4 @@
-"""Console script for openapi2tools."""
+"""Console script for openapi2callables."""
 import click
 
 from .parse import get_spec

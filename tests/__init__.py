@@ -1,1 +1,1 @@
-"""Unit test package for openapi2tools."""
+"""Unit test package for openapi2callables."""
