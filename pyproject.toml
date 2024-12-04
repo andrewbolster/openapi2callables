@@ -9,7 +9,7 @@ packages = [{include = "openapi2callables"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = "^0.115.5"
+fastapi = "^0.115.6"
 requests = "^2.32.3"
 
 [tool.poetry.group.dev.dependencies]
