@@ -53,7 +53,7 @@ def test_execute_spec_get(client, schema):
 
 
 def test_parse_spec_get_name_param(schema):
-    operationId = "pirate_endpoint_pirate__name__get"
+    operationId = "pirate_endpoint_name_pirate__name__get"
     tools = parse_spec(schema)
 
     expected_result = {
