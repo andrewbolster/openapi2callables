@@ -1,24 +1,38 @@
-[tool.poetry]
+[tool.pdm.build]
+includes = ["openapi2callables"]
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[project]
+authors = [
+    {name = "Andrew Bolster", email = "andrew@bolster.online"},
+]
+requires-python = "<4.0,>=3.10"
+dependencies = [
+    "fastapi<1.0.0,>=0.115.8",
+    "requests<3.0.0,>=2.32.3",
+    "jsonref<2.0.0,>=1.1.0",
+    "uvicorn<1.0.0,>=0.34.0",
+]
 name = "openapi2callables"
-homepage = "https://github.com/andrewbolster/openapi2callables"
 version = "0.1.0"
 description = "Experiment in parsing and projecting OpenAPI endpoints into OpenAI/GenericLLM compatible Tools (but should also be generic enough for non-llm directed usage...)"
-authors = ["Andrew Bolster <andrew@bolster.online>"]
 readme = "README.md"
-packages = [{include = "openapi2callables"}]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-fastapi = "^0.115.8"
-requests = "^2.32.3"
+[project.urls]
+homepage = "https://github.com/andrewbolster/openapi2callables"
 
-[tool.poetry.group.dev.dependencies]
-pre-commit = "^4.1.0"
-pytest = "^8.3.4"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
+[project.scripts]
 openapi2callables = "openapi2callables.cli:cli"
+
+[dependency-groups]
+dev = [
+    "pre-commit<5.0.0,>=4.1.0",
+    "pytest<9.0.0,>=8.3.4",
+    "ipykernel<7.0.0,>=6.29.5",
+    "httpx<1.0.0,>=0.28.1",
+    "pytest-cov>=6.0.0",
+    "pytest-mock>=3.14.0",
+    "ruff>=0.9.7",
+]

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Tests for `openapi2callables` package."""
-import pytest
+
 from openapi2callables.parse import parse_spec
 
 

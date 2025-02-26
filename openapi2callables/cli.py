@@ -1,4 +1,5 @@
 """Console script for openapi2callables."""
+
 import click
 
 from .parse import get_spec
@@ -7,8 +8,7 @@ from .server import app
 
 
 @click.group()
-def cli():
-    ...
+def cli(): ...
 
 
 @cli.command()
