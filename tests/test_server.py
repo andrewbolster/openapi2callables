@@ -20,19 +20,19 @@ def client():
 
 
 def test_pirate_endpoint(client):
-    response = client.get("/pirate")
+    response = client.get("/get_pirate")
     assert response.status_code == 200
     assert response.text == '"Arr, matey! Welcome to the pirate endpoint!"'
-
-
-def test_pirate_endpoint_with_no_name(client):
-    response = client.get("/pirate")
-    assert response.status_code == 200
-    assert response.text == '"Arr, matey! Welcome to the pirate endpoint!"'
-
 
 def test_pirate_endpoint_with_name(client):
     name = "Jack Sparrow"
-    response = client.get(f"/pirate/{name}")
+    response = client.get(f"/urlparam_pirate/{name}")
     assert response.status_code == 200
     assert response.text == f'"Arr, matey! Welcome to the pirate endpoint, {name}!"'
+    
+def test_pirate_endpoint_body(client):
+    name = "Blackbeard"
+    response = client.post("/post_pirate", json={"name": name})
+    assert response.status_code == 200
+    assert response.text == f'"Arr, matey! Welcome to the pirate endpoint, {name}!"'
+

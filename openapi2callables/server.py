@@ -3,6 +3,7 @@
 import uvicorn
 from importlib.metadata import version
 from fastapi import FastAPI
+from pydantic import BaseModel
 
 
 app = FastAPI(
@@ -15,16 +16,24 @@ app = FastAPI(
 )
 
 
-@app.get("/pirate")
+@app.get("/get_pirate")
 def pirate_endpoint() -> str:
     """Pirate endpoint. Simplest possible endpoint; no inputs, only string response"""
     return "Arr, matey! Welcome to the pirate endpoint!"
 
 
-@app.get("/pirate/{name}")
+@app.get("/urlparam_pirate/{name}")
 def pirate_endpoint_name(name: str) -> str:
     """Pirate endpoint. Simplest possible endpoint; URL input, only string response"""
     return f"Arr, matey! Welcome to the pirate endpoint, {name}!"
+
+class Pirate(BaseModel):
+    name: str
+
+@app.post("/post_pirate")
+def pirate_endpoint_body(pirate:Pirate) -> str:
+    """Pirate endpoint. Simplest possible endpoint; Post Body input, only string response"""
+    return f"Arr, matey! Welcome to the pirate endpoint, {pirate.name}!"
 
 
 if __name__ == "__main__":

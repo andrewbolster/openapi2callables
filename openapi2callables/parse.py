@@ -29,7 +29,11 @@ class APITool:
 
     def __call__(self, client=requests.request, *args, **kwds):
         print(f"Calling {self.operationId} with {kwds}")
-        response = client(self.method, f"{self.base_url}{self.path}", params=kwds)
+        body = {}
+        for k, v in kwds.items():
+            if self.parameters[k]['_type'] == 'body':
+                body[k] = v
+        response = client(self.method, f"{self.base_url}{self.path}", params=kwds, json=body)
         if hasattr(response, "json"):  # requests
             return response.json()
         else:  # httpx or otherwise
@@ -45,8 +49,8 @@ class APITool:
                     "type": "object",
                     "properties": {
                         k: {
-                            "type": p["schema"]["type"],
-                            "description": p["schema"]["title"],
+                            "type": p["type"],
+                            "description": p["description"],
                         }
                         for k, p in self.parameters.items()
                     },
@@ -86,18 +90,41 @@ def parse_spec(spec, tool_prefix=None):
             print(f"Summary: {method_data['summary']}")
             print(f"Description: {method_data['description']}")
             print(f"Parameters: {method_data.get('parameters', [])}")
+            print(f"RequestBody: {method_data.get('requestBody', [])}")
             print(f"Responses: {method_data['responses']}")
             print("\n")
 
             parameters = {}
             if "parameters" in method_data:  # Handle simple query parameters
                 for param in method_data["parameters"]:
+                    normalised_type = None
+                    if 'type' in param["schema"]:
+                        normalised_type = param["schema"]["type"]
+                    elif 'anyOf' in param["schema"]:
+                        # Handle query parameters with multiple types
+                        normalised_type = param["schema"]["anyOf"][0]["type"]
+                        normalised_type = [p['type'] for p in param["schema"]["anyOf"] if p['type'] != 'null']
                     parameters[param["name"]] = {
                         "_type": "query" if param.get("in", "") == "query" else "path",
                         "required": param["required"],
-                        "type": param["schema"]["type"],
+                        "type":  normalised_type,
                         "description": param.get("description", ""),
                     }
+
+            if "requestBody" in method_data:  # Handle request body parameters
+                for content_type, content_data in method_data["requestBody"]["content"].items():
+                    for param_name, param_data in content_data["schema"]["properties"].items():
+                        try:
+                            parameters[param_name] = {
+                                "_type": "body",
+                                "required": param_name in content_data["schema"]["required"],
+                                "type": param_data["type"] if "type" in param_data else [p['type'] for p in param_data["anyOf"] if p['type'] != 'null'],
+                                "description": param_data.get("description", ""),
+                            }
+                        except KeyError:
+                            print(f"Error parsing {param_name}: {param_data}")
+                            raise
+            
         tools[method_data["operationId"]] = {
             "path": path,
             "method": method,

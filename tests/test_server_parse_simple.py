@@ -25,11 +25,11 @@ def schema(client):
 
 
 def test_parse_spec_get(schema):
-    operationId = "pirate_endpoint_pirate_get"
+    operationId = "pirate_endpoint_get_pirate_get"
     tools = parse_spec(schema)
 
     expected_result = {
-        "path": "/pirate",
+        "path": "/get_pirate",
         "method": "get",
         "summary": "Pirate endpoint. Simplest possible endpoint; no inputs, only string response",
         "description": "Pirate endpoint. Simplest possible endpoint; no inputs, only string response",
@@ -44,7 +44,7 @@ def test_parse_spec_get(schema):
 
 def test_execute_spec_get(client, schema):
     tools = parse_spec(schema)
-    operationId = "pirate_endpoint_pirate_get"
+    operationId = "pirate_endpoint_get_pirate_get"
     tool = tools[operationId]
     api_tool = APITool(operationId=operationId, base_url=client.base_url, **tool)
 
@@ -53,11 +53,11 @@ def test_execute_spec_get(client, schema):
 
 
 def test_parse_spec_get_name_param(schema):
-    operationId = "pirate_endpoint_name_pirate__name__get"
+    operationId = "pirate_endpoint_name_urlparam_pirate__name__get"
     tools = parse_spec(schema)
 
     expected_result = {
-        "path":  "/pirate/{name}",
+        "path":  "/urlparam_pirate/{name}",
         "method": "get",
         "summary": "Pirate endpoint. Simplest possible endpoint; no inputs, only string response",
         "description": "Pirate endpoint. Simplest possible endpoint; no inputs, only string response",
@@ -69,6 +69,30 @@ def test_parse_spec_get_name_param(schema):
             "description": "",
         }
     },
+        "responses": {"200": {"description": "Successful response"}},
+    }
+
+    assert operationId in tools
+    assert tools[operationId]["path"] == expected_result["path"]
+    assert tools[operationId]["parameters"] == expected_result["parameters"]
+
+def test_parse_spec_post(schema):
+    operationId = "pirate_endpoint_body_post_pirate_post"
+    tools = parse_spec(schema)
+
+    expected_result = {
+        "path": "/post_pirate",
+        "method": "post",
+        "summary": "Pirate endpoint. Simplest possible endpoint; Post Body input, only string response",
+        "description": "Pirate endpoint. Simplest possible endpoint; Post Body input, only string response",
+        "parameters": {
+            "name": {
+                "_type": "body",
+                "required": True,
+                "type": "string",
+                "description": "",
+            }
+        },
         "responses": {"200": {"description": "Successful response"}},
     }
 
