@@ -2,7 +2,7 @@ precommit:
 	pre-commit run --all-files
 
 test:
-	poetry run pytest
+	uv run pytest
 
 ready:
 	$(MAKE) precommit

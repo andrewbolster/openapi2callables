@@ -2,10 +2,11 @@
 """
 Tests for `openapi2callables.parse` package, on 'live' OpenAPI specs from `openapi2callables.server`
 """
+
 import pytest
 from fastapi.testclient import TestClient
-from openapi2callables.parse import APITool
-from openapi2callables.parse import parse_spec
+
+from openapi2callables.parse import APITool, parse_spec
 from openapi2callables.server import app
 
 
@@ -186,9 +187,7 @@ def test_execute_spec_put(client, schema):
     # First, add a pirate to update
     client.post("/add_pirate", json={"name": "Jack", "age": 30, "ship": "Black Pearl"})
 
-    result = api_tool(
-        client=client.request, name="Jack", age=35, ship="Flying Dutchman"
-    )
+    result = api_tool(client=client.request, name="Jack", age=35, ship="Flying Dutchman")
     assert result == "Pirate Jack updated!"
 
 

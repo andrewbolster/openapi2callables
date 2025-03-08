@@ -1,9 +1,8 @@
 """Initial Parse module for OpenAPI spec files."""
+
 import json
-from dataclasses import dataclass
-from dataclasses import field
-from typing import Any
-from typing import Dict
+from dataclasses import dataclass, field
+from typing import Any, Dict
 
 import jsonref
 import requests
@@ -39,14 +38,10 @@ class APITool:
         # we add a 'virtual' kwds key for each body parameter
         kwds_list = list(kwds.items())
         # New virtual kwargs will be kwd_body for each kwd in kwds that appears in parameters
-        shadowed_keys = {
-            k: k[:-5] for k in self.parameters.keys() if k.endswith("_body")
-        }
+        shadowed_keys = {k: k[:-5] for k in self.parameters.keys() if k.endswith("_body")}
         if shadowed_keys:
             for key, kwd in shadowed_keys.items():
-                kwds_list.append(
-                    (key, kwds[kwd])
-                )  # so this becomes {root_body: value_of_root}
+                kwds_list.append((key, kwds[kwd]))  # so this becomes {root_body: value_of_root}
 
         for k, v in kwds_list:
             if self.parameters[k]["_type"] == "body":
@@ -58,9 +53,7 @@ class APITool:
             if self.parameters[k]["_type"] == "query":
                 params[k] = v
 
-        response = client(
-            self.method, f"{self.base_url}{self.path}", params=kwds, json=body
-        )
+        response = client(self.method, f"{self.base_url}{self.path}", params=kwds, json=body)
         if hasattr(response, "json"):  # requests
             return response.json()
         else:  # httpx or otherwise
@@ -81,9 +74,7 @@ class APITool:
                         }
                         for k, p in self.parameters.items()
                     },
-                    "required": [
-                        k for k, p in self.parameters.items() if p["required"]
-                    ],
+                    "required": [k for k, p in self.parameters.items() if p["required"]],
                 },
             },
         }
@@ -130,11 +121,7 @@ def parse_spec(spec, tool_prefix=None):
                     elif "anyOf" in param["schema"]:
                         # Handle query parameters with multiple types
                         normalised_type = param["schema"]["anyOf"][0]["type"]
-                        normalised_type = [
-                            p["type"]
-                            for p in param["schema"]["anyOf"]
-                            if p["type"] != "null"
-                        ]
+                        normalised_type = [p["type"] for p in param["schema"]["anyOf"] if p["type"] != "null"]
                     parameters[param["name"]] = {
                         "_type": "query" if param.get("in", "") == "query" else "path",
                         "required": param["required"],
@@ -143,22 +130,15 @@ def parse_spec(spec, tool_prefix=None):
                     }
 
             if "requestBody" in method_data:  # Handle request body parameters
-                for content_type, content_data in method_data["requestBody"][
-                    "content"
-                ].items():
-                    for param_name, param_data in content_data["schema"].get("properties",{}).items():
+                for content_type, content_data in method_data["requestBody"]["content"].items():
+                    for param_name, param_data in content_data["schema"].get("properties", {}).items():
                         try:
                             param_spec = {
                                 "_type": "body",
-                                "required": param_name
-                                in content_data["schema"].get("required", []),
+                                "required": param_name in content_data["schema"].get("required", []),
                                 "type": param_data["type"]
                                 if "type" in param_data
-                                else [
-                                    p["type"]
-                                    for p in param_data["anyOf"]
-                                    if p["type"] != "null"
-                                ],
+                                else [p["type"] for p in param_data["anyOf"] if p["type"] != "null"],
                                 "description": param_data.get("description", ""),
                             }
                             if param_name in parameters:

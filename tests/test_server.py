@@ -4,8 +4,10 @@ Tests for `openapi2callables.server` package.
 
 These are predominatly to 'lock-down' expected types etc from the server to then align the real capabilities of the package in `test_parse.py`
 """
+
 import pytest
 from fastapi.testclient import TestClient
+
 from openapi2callables.server import app
 
 

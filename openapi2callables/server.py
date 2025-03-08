@@ -1,7 +1,7 @@
 """Main module."""
+
 from importlib.metadata import version
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
 import uvicorn
 from fastapi import FastAPI
