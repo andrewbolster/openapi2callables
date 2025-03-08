@@ -5,7 +5,7 @@ description = "Experiment in parsing and projecting OpenAPI endpoints into OpenA
 authors = [
     {name = "Andrew Bolster", email = "andrew.bolster@gmail.com"},
 ]
-license = {text = "MIT"}
+license = {file = "LICENSE"}
 readme = {file = "README.md", content-type = "text/markdown"}
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -30,6 +30,9 @@ keywords = ["openapi", "fastapi", "api", "llm", "tools"]
 
 [project.urls]
 homepage = "https://github.com/andrewbolster/openapi2callables"
+documentation = "https://openapi2callables.readthedocs.io"
+repository = "https://github.com/andrewbolster/openapi2callables.git"
+issues = "https://github.com/andrewbolster/openapi2callables/issues"
 
 [project.scripts]
 openapi2callables = "openapi2callables.cli:cli"
