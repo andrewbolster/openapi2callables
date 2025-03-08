@@ -13,4 +13,4 @@ jobs:
             - name: Build and publish to pypi
               run: |
                   uv build
-                  uv publish --pypi
+                  uv publish
