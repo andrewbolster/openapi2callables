@@ -11,11 +11,12 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                python-version:
-                    ["pypy3.10", "3.10", "3.11", "3.12"]
+                python-version: ["pypy3.10", "3.10", "3.11", "3.12", "3.13"]
 
         steps:
             - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
             - name: Set up Python ${{ matrix.python-version }}
               uses: actions/setup-python@v5
               with:
@@ -23,18 +24,24 @@ jobs:
             - name: Install uv and set the python version
               uses: astral-sh/setup-uv@v5
               with:
-                python-version: ${{ matrix.python-version }}
-                enable-cache: true
-                cache-dependency-glob: "uv.lock"
+                  python-version: ${{ matrix.python-version }}
+                  enable-cache: true
+                  cache-dependency-glob: "uv.lock"
 
             - name: Install the project
               run: uv sync --all-extras --dev
-        
+
             - name: Run tests
               # For example, using `pytest`
-              run: uv run pytest tests --cov-branch --cov-report=xml
-            
+              run: uv run pytest tests --cov-branch --cov-report=xml --cov=openapi2callables --cov --junitxml=junit.xml -o junit_family=legacy
+
             - name: Upload coverage reports to Codecov
               uses: codecov/codecov-action@v5
               with:
-                token: ${{ secrets.CODECOV_TOKEN }}
+                  token: ${{ secrets.CODECOV_TOKEN }}
+
+            - name: Upload test results to Codecov
+              if: ${{ !cancelled() }}
+              uses: codecov/test-results-action@v1
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}

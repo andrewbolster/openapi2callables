@@ -1,11 +1,13 @@
 """Initial Parse module for OpenAPI spec files."""
-
 import json
+from dataclasses import dataclass
+from dataclasses import field
+from typing import Any
+from typing import Dict
+
 import jsonref
 import requests
 import yaml
-from typing import Dict, Any
-from dataclasses import dataclass, field
 
 
 @dataclass
@@ -35,22 +37,28 @@ class APITool:
         # we add a 'virtual' kwds key for each body parameter
         kwds_list = list(kwds.items())
         # New virtual kwargs will be kwd_body for each kwd in kwds that appears in parameters
-        shadowed_keys = {k:k[:-5] for k in self.parameters.keys() if k.endswith('_body')}
+        shadowed_keys = {
+            k: k[:-5] for k in self.parameters.keys() if k.endswith("_body")
+        }
         if shadowed_keys:
             for key, kwd in shadowed_keys.items():
-                kwds_list.append((key, kwds[kwd])) # so this becomes {root_body: value_of_root}
+                kwds_list.append(
+                    (key, kwds[kwd])
+                )  # so this becomes {root_body: value_of_root}
 
-        for (k, v) in kwds_list:
-            if self.parameters[k]['_type'] == 'body':
-                if k.endswith('_body'):
+        for k, v in kwds_list:
+            if self.parameters[k]["_type"] == "body":
+                if k.endswith("_body"):
                     k = k[:-5]
-                body[k] = v 
-            if self.parameters[k]['_type'] == 'path':
+                body[k] = v
+            if self.parameters[k]["_type"] == "path":
                 self.path = self.path.replace(f"{{{k}}}", str(v))
-            if self.parameters[k]['_type'] == 'query':
+            if self.parameters[k]["_type"] == "query":
                 params[k] = v
 
-        response = client(self.method, f"{self.base_url}{self.path}", params=kwds, json=body)
+        response = client(
+            self.method, f"{self.base_url}{self.path}", params=kwds, json=body
+        )
         if hasattr(response, "json"):  # requests
             return response.json()
         else:  # httpx or otherwise
@@ -115,28 +123,42 @@ def parse_spec(spec, tool_prefix=None):
             if "parameters" in method_data:  # Handle simple query parameters
                 for param in method_data["parameters"]:
                     normalised_type = None
-                    if 'type' in param["schema"]:
+                    if "type" in param["schema"]:
                         normalised_type = param["schema"]["type"]
-                    elif 'anyOf' in param["schema"]:
+                    elif "anyOf" in param["schema"]:
                         # Handle query parameters with multiple types
                         normalised_type = param["schema"]["anyOf"][0]["type"]
-                        normalised_type = [p['type'] for p in param["schema"]["anyOf"] if p['type'] != 'null']
+                        normalised_type = [
+                            p["type"]
+                            for p in param["schema"]["anyOf"]
+                            if p["type"] != "null"
+                        ]
                     parameters[param["name"]] = {
                         "_type": "query" if param.get("in", "") == "query" else "path",
                         "required": param["required"],
-                        "type":  normalised_type,
+                        "type": normalised_type,
                         "description": param.get("description", ""),
                     }
 
             if "requestBody" in method_data:  # Handle request body parameters
-                for content_type, content_data in method_data["requestBody"]["content"].items():
-                    for param_name, param_data in content_data["schema"]["properties"].items():
+                for content_type, content_data in method_data["requestBody"][
+                    "content"
+                ].items():
+                    for param_name, param_data in content_data["schema"][
+                        "properties"
+                    ].items():
                         try:
-
                             param_spec = {
                                 "_type": "body",
-                                "required": param_name in content_data["schema"]["required"],
-                                "type": param_data["type"] if "type" in param_data else [p['type'] for p in param_data["anyOf"] if p['type'] != 'null'],
+                                "required": param_name
+                                in content_data["schema"]["required"],
+                                "type": param_data["type"]
+                                if "type" in param_data
+                                else [
+                                    p["type"]
+                                    for p in param_data["anyOf"]
+                                    if p["type"] != "null"
+                                ],
                                 "description": param_data.get("description", ""),
                             }
                             if param_name in parameters:
@@ -149,7 +171,7 @@ def parse_spec(spec, tool_prefix=None):
                         except KeyError:
                             print(f"Error parsing {param_name}: {param_data}")
                             raise
-            
+
         tools[method_data["operationId"]] = {
             "path": path,
             "method": method,

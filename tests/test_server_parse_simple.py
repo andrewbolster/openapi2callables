@@ -2,10 +2,10 @@
 """
 Tests for `openapi2callables.parse` package, on 'live' OpenAPI specs from `openapi2callables.server`
 """
-
 import pytest
 from fastapi.testclient import TestClient
-from openapi2callables.parse import parse_spec, APITool
+from openapi2callables.parse import APITool
+from openapi2callables.parse import parse_spec
 from openapi2callables.server import app
 
 
@@ -57,24 +57,25 @@ def test_parse_spec_get_name_param(schema):
     tools = parse_spec(schema)
 
     expected_result = {
-        "path":  "/urlparam_pirate/{name}",
+        "path": "/urlparam_pirate/{name}",
         "method": "get",
         "summary": "Pirate endpoint. Simplest possible endpoint; no inputs, only string response",
         "description": "Pirate endpoint. Simplest possible endpoint; no inputs, only string response",
         "parameters": {
-        "name": {
-            "_type": "path",
-            "required": True,
-            "type": "string",
-            "description": "",
-        }
-    },
+            "name": {
+                "_type": "path",
+                "required": True,
+                "type": "string",
+                "description": "",
+            }
+        },
         "responses": {"200": {"description": "Successful response"}},
     }
 
     assert operationId in tools
     assert tools[operationId]["path"] == expected_result["path"]
     assert tools[operationId]["parameters"] == expected_result["parameters"]
+
 
 def test_execute_spec_get_name_param(client, schema):
     tools = parse_spec(schema)
@@ -84,6 +85,7 @@ def test_execute_spec_get_name_param(client, schema):
 
     result = api_tool(client=client.request, name="Jack Sparrow")
     assert result == "Arr, matey! Welcome to the pirate endpoint, Jack Sparrow!"
+
 
 def test_parse_spec_post(schema):
     operationId = "pirate_endpoint_body_post_pirate_post"
@@ -112,7 +114,7 @@ def test_parse_spec_post(schema):
                 "required": False,
                 "type": ["string"],
                 "description": "",
-            }
+            },
         },
         "responses": {"200": {"description": "Successful response"}},
     }
@@ -120,6 +122,7 @@ def test_parse_spec_post(schema):
     assert operationId in tools
     assert tools[operationId]["path"] == expected_result["path"]
     assert tools[operationId]["parameters"] == expected_result["parameters"]
+
 
 def test_execute_spec_post(client, schema):
     tools = parse_spec(schema)
@@ -129,6 +132,7 @@ def test_execute_spec_post(client, schema):
 
     result = api_tool(client=client.request, name="Blackbeard")
     assert result == "Arr, matey! Welcome to the pirate endpoint, Blackbeard!"
+
 
 def test_parse_spec_put(schema):
     operationId = "update_pirate_update_pirate__name__put"
@@ -146,7 +150,7 @@ def test_parse_spec_put(schema):
                 "type": "string",
                 "description": "",
             },
-            "name_body": { # Recover from _body naming collision in parse_spec
+            "name_body": {  # Recover from _body naming collision in parse_spec
                 "_type": "body",
                 "required": True,
                 "type": "string",
@@ -163,7 +167,7 @@ def test_parse_spec_put(schema):
                 "required": False,
                 "type": ["string"],
                 "description": "",
-            }
+            },
         },
         "responses": {"200": {"description": "Successful response"}},
     }
@@ -171,6 +175,7 @@ def test_parse_spec_put(schema):
     assert operationId in tools
     assert tools[operationId]["path"] == expected_result["path"]
     assert tools[operationId]["parameters"] == expected_result["parameters"]
+
 
 def test_execute_spec_put(client, schema):
     tools = parse_spec(schema)
@@ -181,8 +186,11 @@ def test_execute_spec_put(client, schema):
     # First, add a pirate to update
     client.post("/add_pirate", json={"name": "Jack", "age": 30, "ship": "Black Pearl"})
 
-    result = api_tool(client=client.request, name="Jack", age=35, ship="Flying Dutchman")
+    result = api_tool(
+        client=client.request, name="Jack", age=35, ship="Flying Dutchman"
+    )
     assert result == "Pirate Jack updated!"
+
 
 def test_parse_spec_delete(schema):
     operationId = "delete_pirate_delete_pirate__name__delete"
@@ -208,6 +216,7 @@ def test_parse_spec_delete(schema):
     assert tools[operationId]["path"] == expected_result["path"]
     assert tools[operationId]["parameters"] == expected_result["parameters"]
 
+
 def test_execute_spec_delete(client, schema):
     tools = parse_spec(schema)
     operationId = "delete_pirate_delete_pirate__name__delete"
@@ -219,6 +228,7 @@ def test_execute_spec_delete(client, schema):
 
     result = api_tool(client=client.request, name="Jack")
     assert result == "Pirate Jack deleted!"
+
 
 def test_parse_spec_search(schema):
     operationId = "search_pirates_search_pirates_get"
@@ -244,6 +254,7 @@ def test_parse_spec_search(schema):
     assert tools[operationId]["path"] == expected_result["path"]
     assert tools[operationId]["parameters"] == expected_result["parameters"]
 
+
 def test_execute_spec_search(client, schema):
     tools = parse_spec(schema)
     operationId = "search_pirates_search_pirates_get"
@@ -255,6 +266,7 @@ def test_execute_spec_search(client, schema):
 
     result = api_tool(client=client.request, ship="Black Pearl")
     assert result == [{"name": "Jack", "age": 30, "ship": "Black Pearl"}]
+
 
 def test_parse_spec_get_all(schema):
     operationId = "get_pirates_get_pirates_get"
@@ -273,6 +285,7 @@ def test_parse_spec_get_all(schema):
     assert tools[operationId]["path"] == expected_result["path"]
     assert tools[operationId]["parameters"] == expected_result["parameters"]
 
+
 def test_execute_spec_get_all(client, schema):
     tools = parse_spec(schema)
     operationId = "get_pirates_get_pirates_get"
@@ -284,6 +297,7 @@ def test_execute_spec_get_all(client, schema):
 
     result = api_tool(client=client.request)
     assert {"name": "Jack", "age": 30, "ship": "Black Pearl"} in result
+
 
 def test_parse_spec_add(schema):
     operationId = "add_pirate_add_pirate_post"
@@ -312,7 +326,7 @@ def test_parse_spec_add(schema):
                 "required": False,
                 "type": ["string"],
                 "description": "",
-            }
+            },
         },
         "responses": {"200": {"description": "Successful response"}},
     }
@@ -320,6 +334,7 @@ def test_parse_spec_add(schema):
     assert operationId in tools
     assert tools[operationId]["path"] == expected_result["path"]
     assert tools[operationId]["parameters"] == expected_result["parameters"]
+
 
 def test_execute_spec_add(client, schema):
     tools = parse_spec(schema)

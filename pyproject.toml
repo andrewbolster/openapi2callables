@@ -29,7 +29,7 @@ openapi2callables = "openapi2callables.cli:cli"
 [dependency-groups]
 dev = [
     "pre-commit<5.0.0,>=4.1.0",
-    "pytest<9.0.0,>=8.3.4",
+    "pytest>=8.3.4,<9.0.0",
     "ipykernel<7.0.0,>=6.29.5",
     "httpx<1.0.0,>=0.28.1",
     "pytest-cov>=6.0.0",
