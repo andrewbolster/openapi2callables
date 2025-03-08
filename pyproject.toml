@@ -54,6 +54,7 @@ dev = [
     "sphinx-autodoc-typehints>=3.0.1",
     "sphinx-rtd-theme>=3.0.2",
     "sphinx-autoapi>=3.6.0",
+    "sphinxcontrib-mermaid>=1.0.0",
     "myst-parser>=4.0.1",
 ]
 

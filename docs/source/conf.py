@@ -17,6 +17,7 @@ version = __version__
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
+    "sphinxcontrib.mermaid",
     "autoapi.extension",
     "myst_parser",
 ]
@@ -35,3 +36,8 @@ html_static_path = ["_static"]
 
 autoapi_dirs = ["../../openapi2callables"]
 autodoc_typehints = "description"
+
+# -- Options for MyST Parser output ------------------------------------------
+# https://myst-parser.readthedocs.io/en/latest/syntax/optional.html#configuration
+
+myst_fence_as_directive = ["mermaid"]
