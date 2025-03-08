@@ -1,7 +1,7 @@
 [project]
 name = "openapi2callables"
 dynamic = ["version"]
-description = "Experiment in parsing and projecting OpenAPI endpoints into OpenAI/GenericLLM compatible Tools (but should also be generic enough for non-llm directed usage...)"
+description = "Parse and project OpenAPI endpoints into OpenAI/GenericLLM compatible Tools"
 authors = [
     {name = "Andrew Bolster", email = "andrew.bolster@gmail.com"},
 ]
@@ -18,31 +18,35 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+    "Topic :: Software Development :: Code Generators",
 ]
-requires-python = "<4.0,>=3.10"
+requires-python = ">=3.10,<4.0"
 dependencies = [
-    "fastapi<1.0.0,>=0.115.8",
-    "requests<3.0.0,>=2.32.3",
-    "jsonref<2.0.0,>=1.1.0",
-    "uvicorn<1.0.0,>=0.34.0",
+    "fastapi>=0.115.8,<1.0.0",
+    "requests>=2.32.3,<3.0.0",
+    "jsonref>=1.1.0,<2.0.0",
+    "uvicorn>=0.34.0,<1.0.0",
+    "pyyaml>=6.0,<7.0",
+    "click>=8.0.0,<9.0.0",
 ]
-keywords = ["openapi", "fastapi", "api", "llm", "tools"]
+keywords = ["openapi", "fastapi", "api", "llm", "tools", "openai"]
 
 [project.urls]
-homepage = "https://github.com/andrewbolster/openapi2callables"
-documentation = "https://openapi2callables.readthedocs.io"
-repository = "https://github.com/andrewbolster/openapi2callables.git"
-issues = "https://github.com/andrewbolster/openapi2callables/issues"
+Homepage = "https://github.com/andrewbolster/openapi2callables"
+Documentation = "https://openapi2callables.readthedocs.io"
+Repository = "https://github.com/andrewbolster/openapi2callables.git"
+"Bug Tracker" = "https://github.com/andrewbolster/openapi2callables/issues"
 
 [project.scripts]
 openapi2callables = "openapi2callables.cli:cli"
 
-[dependency-groups]
+[project.optional-dependencies]
 dev = [
-    "pre-commit<5.0.0,>=4.1.0",
+    "pre-commit>=4.1.0,<5.0.0",
     "pytest>=8.3.4,<9.0.0",
-    "ipykernel<7.0.0,>=6.29.5",
-    "httpx<1.0.0,>=0.28.1",
+    "ipykernel>=6.29.5,<7.0.0",
+    "httpx>=0.28.1,<1.0.0",
     "pytest-cov>=6.0.0",
     "pytest-mock>=3.14.0",
     "ruff>=0.9.7",
@@ -62,5 +66,30 @@ version = { source = "file", path = "openapi2callables/__init__.py" }
 
 [tool.pdm.build]
 includes = ["openapi2callables"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=openapi2callables --cov-report=term-missing"
+testpaths = ["tests"]
+
+[tool.ruff]
+select = ["E", "F", "I"]
+ignore = ["E501"]
+line-length = 120
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.coverage.run]
+source = ["openapi2callables"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "pass",
+]
 
 
