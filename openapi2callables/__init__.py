@@ -2,11 +2,12 @@
 
 __author__ = """Andrew Bolster"""
 __email__ = "andrew.bolster@gmail.com"
-__version__ = "0.1.0"
+import importlib.metadata
+__version__ = importlib.metadata.version("openapi2callables")
 
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-logger.info("Open loaded")
+logger.info(f"OpenAPI2Callables version {__version__}")
