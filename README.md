@@ -1,7 +1,8 @@
 # OpenAPI2Callables
 
-[![pypi](https://img.shields.io/pypi/v/openapi2callables.svg)](https://pypi.org/project/openapi2callables/)
-[![python](https://img.shields.io/pypi/pyversions/openapi2callables.svg)](https://pypi.org/project/openapi2callables/)
+[![status](https://img.shields.io/pypi/status/openapi2callables)](https://pypi.org/project/openapi2callables/)
+[![pypi](https://img.shields.io/pypi/v/openapi2callables)](https://pypi.org/project/openapi2callables/)
+[![python](https://img.shields.io/pypi/pyversions/openapi2callables)](https://pypi.org/project/openapi2callables/)
 [![Docs](https://readthedocs.org/projects/openapi2callables/badge/?version=latest)](https://openapi2callables.readthedocs.io/en/latest/)
 [![PyTest](https://github.com/andrewbolster/openapi2callables/actions/workflows/pytest.yml/badge.svg)](https://github.com/andrewbolster/openapi2callables/actions/workflows/pytest.yml)
 [![codecov](https://codecov.io/gh/andrewbolster/openapi2callables/branch/main/graphs/badge.svg)](https://codecov.io/github/andrewbolster/openapi2callables)
