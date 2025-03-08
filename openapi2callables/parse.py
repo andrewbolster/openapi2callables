@@ -9,6 +9,8 @@ import jsonref
 import requests
 import yaml
 
+from . import logger
+
 
 @dataclass
 class APITool:
@@ -110,14 +112,14 @@ def parse_spec(spec, tool_prefix=None):
         if tool_prefix is not None and not path.startswith(tool_prefix):
             continue
         for method, method_data in path_data.items():
-            print(f"Path: {path}")
-            print(f"Method: {method}")
-            print(f"Summary: {method_data['summary']}")
-            print(f"Description: {method_data['description']}")
-            print(f"Parameters: {method_data.get('parameters', [])}")
-            print(f"RequestBody: {method_data.get('requestBody', [])}")
-            print(f"Responses: {method_data['responses']}")
-            print("\n")
+            logger.debug(f"Path: {path}")
+            logger.debug(f"Method: {method}")
+            logger.debug(f"Summary: {method_data.get('summary', None)}")
+            logger.debug(f"Description: {method_data.get('description'), None}")
+            logger.debug(f"Parameters: {method_data.get('parameters', [])}")
+            logger.debug(f"RequestBody: {method_data.get('requestBody', [])}")
+            logger.debug(f"Responses: {method_data.get('responses', [])}")
+            logger.debug("\n")
 
             parameters = {}
             if "parameters" in method_data:  # Handle simple query parameters
@@ -144,14 +146,12 @@ def parse_spec(spec, tool_prefix=None):
                 for content_type, content_data in method_data["requestBody"][
                     "content"
                 ].items():
-                    for param_name, param_data in content_data["schema"][
-                        "properties"
-                    ].items():
+                    for param_name, param_data in content_data["schema"].get("properties",{}).items():
                         try:
                             param_spec = {
                                 "_type": "body",
                                 "required": param_name
-                                in content_data["schema"]["required"],
+                                in content_data["schema"].get("required", []),
                                 "type": param_data["type"]
                                 if "type" in param_data
                                 else [
@@ -172,13 +172,13 @@ def parse_spec(spec, tool_prefix=None):
                             print(f"Error parsing {param_name}: {param_data}")
                             raise
 
-        tools[method_data["operationId"]] = {
+        tools[method_data.get("operationId", "")] = {
             "path": path,
             "method": method,
-            "summary": method_data["summary"],
-            "description": method_data["description"],
+            "summary": method_data.get("summary", ""),
+            "description": method_data.get("description", ""),
             "parameters": parameters,
-            "responses": method_data["responses"],
+            "responses": method_data.get("responses", {}),
         }
 
     return tools
