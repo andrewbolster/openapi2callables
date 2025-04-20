@@ -114,3 +114,4 @@ def test_parse_spec_enums():
     result = parse_spec(spec)
     assert "update_rank_put" in result
     assert result["update_rank_put"]["parameters"]["rank"]["enum"] == ["captain", "first_mate"]
+

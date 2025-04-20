@@ -8,7 +8,7 @@ These are predominatly to 'lock-down' expected types etc from the server to then
 import pytest
 from fastapi.testclient import TestClient
 
-from openapi2callables.server import app
+from openapi2callables.server import app, Ship, Treasure, PirateExtended
 
 
 @pytest.fixture
@@ -38,3 +38,70 @@ def test_pirate_endpoint_body(client):
     response = client.post("/post_pirate", json={"name": name})
     assert response.status_code == 200
     assert response.text == f'"Arr, matey! Welcome to the pirate endpoint, {name}!"'
+
+
+def test_create_ship_valid_api_key(client):
+    response = client.post(
+        "/ships",
+        json={"name": "Black Pearl", "type": "Galleon", "capacity": 100, "cannons": 20},
+        headers={"X-API-KEY": "test-api-key"},
+    )
+    assert response.status_code == 201
+    assert response.json()["name"] == "Black Pearl"
+
+def test_create_ship_invalid_api_key(client):
+    response = client.post(
+        "/ships",
+        json={"name": "Flying Dutchman", "type": "Frigate", "capacity": 80, "cannons": 15},
+        headers={"X-API-KEY": "invalid-key"},
+    )
+    assert response.status_code == 401
+
+def test_get_ships_pagination_and_sorting(client):
+    client.post(
+        "/ships",
+        json={"name": "Black Pearl", "type": "Galleon", "capacity": 100, "cannons": 20},
+        headers={"X-API-KEY": "test-api-key"},
+    )
+    client.post(
+        "/ships",
+        json={"name": "Flying Dutchman", "type": "Frigate", "capacity": 80, "cannons": 15},
+        headers={"X-API-KEY": "test-api-key"},
+    )
+    response = client.get("/ships?skip=0&limit=1&sort_by=name&order=asc")
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+def test_get_ship_by_id(client):
+    client.post(
+        "/ships",
+        json={"name": "Black Pearl", "type": "Galleon", "capacity": 100, "cannons": 20},
+        headers={"X-API-KEY": "test-api-key"},
+    )
+    response = client.get("/ships/0")
+    assert response.status_code == 200
+    assert response.json()["name"] == "Black Pearl"
+
+def test_create_treasure(client):
+    response = client.post(
+        "/treasures",
+        json={"name": "Gold Chest", "value": 1000.0, "location": "Island", "is_cursed": False},
+    )
+    assert response.status_code == 200
+    assert response.json()["name"] == "Gold Chest"
+
+def test_create_extended_pirate(client):
+    response = client.post(
+        "/pirates/extended",
+        json={
+            "name": "Jack Sparrow",
+            "age": 40,
+            "ship": "Black Pearl",
+            "rank": "captain",
+            "skills": ["swordsmanship", "navigation"],
+            "treasures": [{"name": "Gold Chest", "value": 1000.0}],
+        },
+        cookies={"session_id": "test-session"},
+    )
+    assert response.status_code == 200
+    assert response.json()["name"] == "Jack Sparrow"

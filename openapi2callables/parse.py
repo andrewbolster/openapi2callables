@@ -4,6 +4,7 @@ import json
 import logging
 import os
 from typing import Any, Dict, List, Optional, Union
+from urllib.parse import urlparse
 
 import jsonref
 import requests
@@ -23,8 +24,18 @@ def get_spec(spec_url_or_path: str) -> Dict[str, Any]:
     Raises:
         ValueError: If the file type is not supported or the file/URL cannot be accessed
     """
+
+    # Check if the input is a URL
+    try:
+        result = urlparse(spec_url_or_path)
+        is_url = all([result.scheme, result.netloc])
+    except ValueError:
+        is_url = False
+
     # Check if it's a local file
-    if os.path.exists(spec_url_or_path):
+    if not is_url:
+        if not os.path.exists(spec_url_or_path):
+            raise ValueError(f"File not found: {spec_url_or_path}")
         try:
             if spec_url_or_path.endswith(".yaml") or spec_url_or_path.endswith(".yml"):
                 with open(spec_url_or_path, "r") as f:
