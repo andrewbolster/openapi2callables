@@ -3,16 +3,42 @@ on:
     push:
         tags:
             - "v*.*.*"
+env:
+  python-version: 3.13
 jobs:
-    build:
+    publish:
+        name: Publish to PyPI
         runs-on: ubuntu-latest
         permissions:
             id-token: write
         steps:
             - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  ref: ${{ github.head_ref }}
             - name: Install uv and set the python version
               uses: astral-sh/setup-uv@v5
+              with:
+                python-version: ${{ env.python-version }}
+                enable-cache: true
+                cache-dependency-glob: "uv.lock"
+
+            - name: Install the project
+              run: uv sync --all-extras --dev
+
+            - name: Run tests
+              run: uv run pytest tests --cov-branch --cov-report=xml --cov=openapi2callables --cov --junitxml=junit.xml -o junit_family=legacy
+
+            - name: Check code coverage
+              id: coverage
+              run: uv run coverage report --fail-under=70
+
             - name: Build and publish to pypi
+              if: steps.coverage.outcome == 'success'
               run: |
-                  uv build
-                  uv publish
+                    uv build
+                    uv publish
+            - name: Upload coverage reports to Codecov
+              uses: codecov/codecov-action@v5
+              with:
+                  token: ${{ secrets.CODECOV_TOKEN }}

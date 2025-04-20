@@ -1,6 +1,7 @@
 from unittest.mock import patch
-import requests
+
 import pytest
+import requests
 from click.testing import CliRunner
 
 from openapi2callables.cli import cli
