@@ -11,6 +11,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to push the tag
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,13 +44,9 @@ jobs:
           BUMPVERSION_TAG: "true"
         with:
           args: patch
-          github-token: ${{ secrets.GH_PUSH_TOKEN }} # GitHub token with write permissions, set in repo secrets
+          github-token: ${{ secrets.GITHUB_TOKEN }} # GitHub token with write permissions, set in repo secrets
 
       - name: Check
         if: steps.bump.outputs.bumped == 'true'
         run: |
           echo "Version was bumped from ${{ steps.bump.outputs.previous-version }} to ${{ steps.bump.outputs.current-version }}!"
-
-      - name: Push changes
-        run: |
-          git push origin main --tags
