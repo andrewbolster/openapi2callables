@@ -1,4 +1,7 @@
 name: Rebase pull requests
+permissions:                    # Global permissions configuration starts here
+  contents: read                # 'read' access to repository contents
+  pull-requests: write          # 'write' access to pull requests
 on:
     push:
     release:

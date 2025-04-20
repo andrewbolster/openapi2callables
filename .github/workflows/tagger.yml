@@ -2,21 +2,22 @@ name: Bump version and push tag
 
 env:
   python-version: 3.13
-
+permissions:
+  contents: write # Needed to push the tag
 on:
   # schedule:
   #   - cron: '0 8 * * *'
   workflow_dispatch
 
 jobs:
-  release:
+  bump_and_tag:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # Needed to push the tag
     steps:
       - uses: actions/checkout@v4
         with:
             fetch-depth: 0
+            ref: ${{ github.head_ref }}
+
       - name: Set up Python ${{ env.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -46,10 +47,11 @@ jobs:
           args: patch
           github-token: ${{ secrets.GITHUB_TOKEN }} # GitHub token with write permissions, set in repo secrets
 
-      - name: Push changes
+      - name: Commit changes
         if: steps.bump.outputs.bumped == 'true'
         run: |
-          git config --local user.name "GitHub Action"
-          git config --local user.email "action@github.com"
-          git commit -am "Version was bumped from ${{ steps.bump.outputs.previous-version }} to ${{ steps.bump.outputs.current-version }}!"
-          git push origin HEAD:main
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -am "chore(version): ${{ steps.bump.outputs.previous-version }} to ${{ steps.bump.outputs.current-version }}"
+          git push origin HEAD:main --tags
