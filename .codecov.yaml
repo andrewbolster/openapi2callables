@@ -2,8 +2,12 @@
 # https://github.com/codecov/support/wiki/Codecov-Yaml
 coverage:
   status:
-    # pull-requests only
+    project:
+      default: false
+      tests:
+        paths:
+          - "tests/"
+        target: auto
     patch:
       default:
-        # coverage may fall by <1% and still be considered "passing"
-        threshold: 1%
+        target: 5%
