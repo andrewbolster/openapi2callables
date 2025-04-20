@@ -46,12 +46,10 @@ jobs:
         with:
           args: patch
           github-token: ${{ secrets.GITHUB_TOKEN }} # GitHub token with write permissions, set in repo secrets
-
-      - name: Commit changes
+    
+      - name: Check
         if: steps.bump.outputs.bumped == 'true'
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -am "chore(version): ${{ steps.bump.outputs.previous-version }} to ${{ steps.bump.outputs.current-version }}"
-          git push origin HEAD:main --tags
+          echo "Version was bumped from ${{ steps.bump.outputs.previous-version }} to ${{ steps.bump.outputs.current-version }}!"
+  
+  
