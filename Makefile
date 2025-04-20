@@ -20,5 +20,5 @@ itso:
 
 patch:
 	$(MAKE) ready || exit 1
-	uvx bump-my-version bump patch || exit 1
-	git push origin main --tags
+	uvx bump-my-version bump patch
+	git push origin main --tags --force
