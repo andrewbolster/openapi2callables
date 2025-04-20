@@ -6,7 +6,8 @@ Tests for `openapi2callables.parse` package, on 'live' OpenAPI specs from `opena
 import pytest
 from fastapi.testclient import TestClient
 
-from openapi2callables.parse import APITool, parse_spec
+from openapi2callables import APITool
+from openapi2callables.parse import parse_spec
 from openapi2callables.server import app
 
 

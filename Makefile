@@ -1,6 +1,9 @@
 precommit:
 	pre-commit run --all-files
 
+env:
+	uv sync --all-extras --dev
+
 test:
 	uv run pytest
 

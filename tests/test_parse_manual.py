@@ -42,6 +42,7 @@ def test_parse_spec_basic():
                 }
             },
             "responses": {"200": {"description": "Successful response"}},
+            "tags": [],
         }
     }
 
