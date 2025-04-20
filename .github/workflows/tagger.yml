@@ -44,7 +44,7 @@ jobs:
           BUMPVERSION_TAG: "true"
         with:
           args: patch
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_PUSH_TOKEN }} # GitHub token with write permissions, set in repo secrets
 
       - name: Check
         if: steps.bump.outputs.bumped == 'true'
