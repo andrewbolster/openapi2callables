@@ -17,3 +17,7 @@ itso:
 	git add -A
 	git commit --amend --no-edit
 	git push -f
+
+patch:
+	$(MAKE) ready || exit 1
+	uvx bump-my-version bump patch

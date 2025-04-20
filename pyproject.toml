@@ -42,23 +42,6 @@ Repository = "https://github.com/andrewbolster/openapi2callables.git"
 [project.scripts]
 openapi2callables = "openapi2callables.cli:cli"
 
-[project.optional-dependencies]
-dev = [
-    "pre-commit>=4.1.0,<5.0.0",
-    "pytest>=8.3.4,<9.0.0",
-    "ipykernel>=6.29.5,<7.0.0",
-    "httpx>=0.28.1,<1.0.0",
-    "pytest-cov>=6.0.0",
-    "pytest-mock>=3.14.0",
-    "ruff>=0.9.7",
-    "sphinx>=8.1.3",
-    "sphinx-autodoc-typehints>=3.0.1",
-    "sphinx-rtd-theme>=3.0.2",
-    "sphinx-autoapi>=3.6.0",
-    "sphinxcontrib-mermaid>=1.0.0",
-    "myst-parser>=4.0.1",
-]
-
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
@@ -103,12 +86,12 @@ replace = "{new_version}"
 regex = false
 ignore_missing_version = false
 ignore_missing_files = false
-tag = false
-sign_tags = false
+tag = true
+sign_tags = true
 tag_name = "v{new_version}"
 tag_message = "Bump version: {current_version} → {new_version}"
-allow_dirty = true
-commit = false
+allow_dirty = false
+commit = true
 message = "Bump version: {current_version} → {new_version}"
 moveable_tags = []
 commit_args = ""
@@ -119,4 +102,17 @@ post_commit_hooks = []
 [dependency-groups]
 dev = [
     "pytest-icdiff>=0.9",
+    "pre-commit>=4.1.0,<5.0.0",
+    "pytest>=8.3.4,<9.0.0",
+    "ipykernel>=6.29.5,<7.0.0",
+    "httpx>=0.28.1,<1.0.0",
+    "pytest-cov>=6.0.0",
+    "pytest-mock>=3.14.0",
+    "ruff>=0.9.7",
+    "sphinx>=8.1.3",
+    "sphinx-autodoc-typehints>=3.0.1",
+    "sphinx-rtd-theme>=3.0.2",
+    "sphinx-autoapi>=3.6.0",
+    "sphinxcontrib-mermaid>=1.0.0",
+    "myst-parser>=4.0.1",
 ]
