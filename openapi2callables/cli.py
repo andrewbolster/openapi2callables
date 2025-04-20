@@ -1,6 +1,7 @@
 """Console script for openapi2callables."""
 
 import click
+import requests
 
 from .parse import get_spec, parse_spec
 from .server import app
@@ -14,8 +15,17 @@ def cli(): ...
 @click.argument("schema_url")
 def parse(schema_url):
     """Parse an OpenAPI schema from a remote URL."""
-    spec = get_spec(schema_url)
+    try:
+        spec = get_spec(schema_url)
+    except requests.exceptions.RequestException as e:
+        raise click.UsageError(f"Could not fetch spec from URL: {e}")
+    click.echo(f"Fetched spec from {schema_url}")
     tools = parse_spec(spec)
+    if not tools:
+        raise click.UsageError("No tools found in the spec.")
+
+    click.echo("Parsed tools:")
+
     click.echo(tools)
 
 

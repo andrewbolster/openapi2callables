@@ -14,13 +14,13 @@ import yaml
 def get_spec(spec_url_or_path: str) -> Dict[str, Any]:
     """
     Get the OpenAPI spec from a URL or local file path.
-    
+
     Args:
         spec_url_or_path: URL or file path to the OpenAPI spec
-        
+
     Returns:
         The parsed OpenAPI spec as a dictionary
-        
+
     Raises:
         ValueError: If the file type is not supported or the file/URL cannot be accessed
     """
@@ -49,7 +49,7 @@ def get_spec(spec_url_or_path: str) -> Dict[str, Any]:
         except Exception as e:
             logging.error(f"Error reading local file {spec_url_or_path}: {e}")
             raise ValueError(f"Could not read spec file: {e}")
-    
+
     # If not a local file, try as URL
     try:
         if spec_url_or_path.endswith((".yaml", ".yml")):
@@ -65,7 +65,7 @@ def get_spec(spec_url_or_path: str) -> Dict[str, Any]:
             response = requests.get(spec_url_or_path)
             response.raise_for_status()
             content_type = response.headers.get("Content-Type", "")
-            
+
             if "application/json" in content_type:
                 spec = json.loads(response.text)
             elif "application/yaml" in content_type or "application/x-yaml" in content_type:
@@ -79,37 +79,39 @@ def get_spec(spec_url_or_path: str) -> Dict[str, Any]:
                         spec = yaml.safe_load(response.text)
                     except yaml.YAMLError:
                         raise ValueError("Could not determine spec format from URL without extension")
-        
+
         return spec
     except requests.RequestException as e:
         logging.error(f"Error fetching spec from URL {spec_url_or_path}: {e}")
         raise ValueError(f"Could not fetch spec from URL: {e}")
 
 
-def parse_spec(spec: Dict[str, Any], tool_prefix: Optional[str] = None, include_deprecated: bool = False) -> Dict[str, Dict[str, Any]]:
+def parse_spec(
+    spec: Dict[str, Any], tool_prefix: Optional[str] = None, include_deprecated: bool = False
+) -> Dict[str, Dict[str, Any]]:
     """
     Parse the OpenAPI spec into a dictionary of tools.
-    
+
     Args:
         spec: The OpenAPI spec as a dictionary
         tool_prefix: Optional prefix to filter paths
         include_deprecated: Whether to include deprecated operations
-        
+
     Returns:
         A dictionary of tools, keyed by operationId
     """
     spec = jsonref.replace_refs(spec)
     tools = {}
     paths = spec["paths"]
-    
+
     # Extract components for reuse if available
     components = spec.get("components", {})
-    schemas = components.get("schemas", {})
-    
+    schemas = components.get("schemas", {})  # noqa: F841
+
     for path, path_data in paths.items():
         if tool_prefix is not None and not path.startswith(tool_prefix):
             continue
-        
+
         # Process each HTTP method for this path
         for method, method_data in path_data.items():
             if method in ["get", "post", "put", "delete", "patch", "options", "head"]:
@@ -118,7 +120,7 @@ def parse_spec(spec: Dict[str, Any], tool_prefix: Optional[str] = None, include_
                     if method_data.get("deprecated", False) and not include_deprecated:
                         logging.info(f"Skipping deprecated operation: {method.upper()} {path}")
                         continue
-                    
+
                     # Log operation details for debugging
                     logging.debug(f"Path: {path}")
                     logging.debug(f"Method: {method}")
@@ -127,10 +129,10 @@ def parse_spec(spec: Dict[str, Any], tool_prefix: Optional[str] = None, include_
                     logging.debug(f"Parameters: {method_data.get('parameters', [])}")
                     logging.debug(f"RequestBody: {method_data.get('requestBody', {})}")
                     logging.debug(f"Responses: {method_data.get('responses', {})}")
-                    
+
                     # Initialize parameters dictionary
                     parameters = {}
-                    
+
                     # Process path, query, header, and cookie parameters
                     if "parameters" in method_data:
                         for param in method_data["parameters"]:
@@ -139,16 +141,16 @@ def parse_spec(spec: Dict[str, Any], tool_prefix: Optional[str] = None, include_
                             param_required = param.get("required", False)
                             param_schema = param.get("schema", {})
                             param_description = param.get("description", "")
-                            
+
                             # Extract parameter type
                             param_type = extract_type_from_schema(param_schema)
-                            
+
                             # Extract enum values if present
                             enum_values = param_schema.get("enum", None)
-                            
+
                             # Extract constraints
                             constraints = extract_constraints(param_schema)
-                            
+
                             # Create parameter spec
                             param_spec = {
                                 "_type": param_in,
@@ -156,44 +158,44 @@ def parse_spec(spec: Dict[str, Any], tool_prefix: Optional[str] = None, include_
                                 "type": param_type,
                                 "description": param_description,
                             }
-                            
+
                             # Add enum values if present
                             if enum_values:
                                 param_spec["enum"] = enum_values
-                                
+
                             # Add constraints if present
                             if constraints:
                                 param_spec.update(constraints)
-                                
+
                             parameters[param_name] = param_spec
-                    
+
                     # Process request body parameters
                     if "requestBody" in method_data:
                         request_body = method_data["requestBody"]
                         request_body_required = request_body.get("required", False)
-                        
+
                         for content_type, content_data in request_body["content"].items():
                             schema = content_data.get("schema", {})
-                            
+
                             # Handle different schema types
                             if schema.get("type") == "object" and "properties" in schema:
                                 # Object with properties
                                 required_props = schema.get("required", [])
-                                
+
                                 for prop_name, prop_schema in schema["properties"].items():
                                     try:
                                         # Extract property type
                                         prop_type = extract_type_from_schema(prop_schema)
-                                        
+
                                         # Extract description
                                         prop_description = prop_schema.get("description", "")
-                                        
+
                                         # Extract enum values if present
                                         enum_values = prop_schema.get("enum", None)
-                                        
+
                                         # Extract constraints
                                         constraints = extract_constraints(prop_schema)
-                                        
+
                                         # Create parameter spec
                                         param_spec = {
                                             "_type": "body",
@@ -201,15 +203,15 @@ def parse_spec(spec: Dict[str, Any], tool_prefix: Optional[str] = None, include_
                                             "type": prop_type,
                                             "description": prop_description,
                                         }
-                                        
+
                                         # Add enum values if present
                                         if enum_values:
                                             param_spec["enum"] = enum_values
-                                            
+
                                         # Add constraints if present
                                         if constraints:
                                             param_spec.update(constraints)
-                                        
+
                                         # Handle parameter name collision
                                         if prop_name in parameters:
                                             parameters[prop_name + "_body"] = param_spec
@@ -227,7 +229,7 @@ def parse_spec(spec: Dict[str, Any], tool_prefix: Optional[str] = None, include_
                                     "items": extract_type_from_schema(items_schema),
                                     "description": schema.get("description", ""),
                                 }
-                                
+
                                 # Use a generic name for the array parameter
                                 array_param_name = "items"
                                 if array_param_name in parameters:
@@ -242,21 +244,21 @@ def parse_spec(spec: Dict[str, Any], tool_prefix: Optional[str] = None, include_
                                     "type": extract_type_from_schema(schema),
                                     "description": schema.get("description", ""),
                                 }
-                                
+
                                 # Use a generic name for the body parameter
                                 body_param_name = "body"
                                 if body_param_name in parameters:
                                     parameters[body_param_name + "_data"] = param_spec
                                 else:
                                     parameters[body_param_name] = param_spec
-                    
+
                     # Extract response information
                     responses = {}
                     for status_code, response_data in method_data.get("responses", {}).items():
                         response_info = {
                             "description": response_data.get("description", ""),
                         }
-                        
+
                         # Extract response content if available
                         if "content" in response_data:
                             for content_type, content_data in response_data["content"].items():
@@ -264,15 +266,15 @@ def parse_spec(spec: Dict[str, Any], tool_prefix: Optional[str] = None, include_
                                 response_info["content_type"] = content_type
                                 response_info["schema"] = extract_type_from_schema(response_schema)
                                 break  # Just use the first content type for now
-                        
+
                         responses[status_code] = response_info
-                    
+
                     # Create the tool entry
                     operation_id = method_data.get("operationId")
                     if not operation_id:
                         # Generate an operation ID if not provided
                         operation_id = f"{method}_{path.replace('/', '_').replace('{', '').replace('}', '')}"
-                    
+
                     tools[operation_id] = {
                         "path": path,
                         "method": method,
@@ -283,39 +285,39 @@ def parse_spec(spec: Dict[str, Any], tool_prefix: Optional[str] = None, include_
                         "tags": method_data.get("tags", []),
                         "deprecated": method_data.get("deprecated", False),
                     }
-                    
+
                     # Add security requirements if present
                     if "security" in method_data:
                         tools[operation_id]["security"] = method_data["security"]
-                
+
                 except KeyError as e:
                     logging.error(f"Error parsing {path} {method}: {e}", exc_info=True)
                 except Exception as e:
                     logging.error(f"Unexpected error parsing {path} {method}: {e}", exc_info=True)
-    
+
     return tools
 
 
 def extract_type_from_schema(schema: Dict[str, Any]) -> Union[str, List[str], Dict[str, Any]]:
     """
     Extract type information from a schema object.
-    
+
     Args:
         schema: The schema object
-        
+
     Returns:
         The extracted type information
     """
     if not schema:
         return "object"  # Default to object if no schema
-    
+
     # Handle references
     if "$ref" in schema:
         ref_path = schema["$ref"]
         # Just return the reference name for now
         # In a more complete implementation, we would resolve the reference
         return ref_path.split("/")[-1]
-    
+
     # Handle anyOf, oneOf, allOf
     if "anyOf" in schema:
         return [extract_type_from_schema(s) for s in schema["anyOf"] if s.get("type") != "null"]
@@ -326,30 +328,23 @@ def extract_type_from_schema(schema: Dict[str, Any]) -> Union[str, List[str], Di
         if schema["allOf"]:
             return extract_type_from_schema(schema["allOf"][0])
         return "object"
-    
+
     # Handle array type
     if schema.get("type") == "array" and "items" in schema:
-        return {
-            "type": "array",
-            "items": extract_type_from_schema(schema["items"])
-        }
-    
+        return {"type": "array", "items": extract_type_from_schema(schema["items"])}
+
     # Handle object type with properties
     if schema.get("type") == "object" and "properties" in schema:
         properties = {}
         for prop_name, prop_schema in schema["properties"].items():
             properties[prop_name] = extract_type_from_schema(prop_schema)
-        
-        return {
-            "type": "object",
-            "properties": properties,
-            "required": schema.get("required", [])
-        }
-    
+
+        return {"type": "object", "properties": properties, "required": schema.get("required", [])}
+
     # Handle simple types
     if "type" in schema:
         return schema["type"]
-    
+
     # Default fallback
     return "object"
 
@@ -357,15 +352,15 @@ def extract_type_from_schema(schema: Dict[str, Any]) -> Union[str, List[str], Di
 def extract_constraints(schema: Dict[str, Any]) -> Dict[str, Any]:
     """
     Extract validation constraints from a schema object.
-    
+
     Args:
         schema: The schema object
-        
+
     Returns:
         A dictionary of constraints
     """
     constraints = {}
-    
+
     # String constraints
     if schema.get("type") == "string":
         if "minLength" in schema:
@@ -376,7 +371,7 @@ def extract_constraints(schema: Dict[str, Any]) -> Dict[str, Any]:
             constraints["pattern"] = schema["pattern"]
         if "format" in schema:
             constraints["format"] = schema["format"]
-    
+
     # Numeric constraints
     if schema.get("type") in ["integer", "number"]:
         if "minimum" in schema:
@@ -389,7 +384,7 @@ def extract_constraints(schema: Dict[str, Any]) -> Dict[str, Any]:
             constraints["exclusiveMaximum"] = schema["exclusiveMaximum"]
         if "multipleOf" in schema:
             constraints["multipleOf"] = schema["multipleOf"]
-    
+
     # Array constraints
     if schema.get("type") == "array":
         if "minItems" in schema:
@@ -398,12 +393,12 @@ def extract_constraints(schema: Dict[str, Any]) -> Dict[str, Any]:
             constraints["maxItems"] = schema["maxItems"]
         if "uniqueItems" in schema:
             constraints["uniqueItems"] = schema["uniqueItems"]
-    
+
     # Object constraints
     if schema.get("type") == "object":
         if "minProperties" in schema:
             constraints["minProperties"] = schema["minProperties"]
         if "maxProperties" in schema:
             constraints["maxProperties"] = schema["maxProperties"]
-    
+
     return constraints

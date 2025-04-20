@@ -8,7 +8,7 @@ These are predominatly to 'lock-down' expected types etc from the server to then
 import pytest
 from fastapi.testclient import TestClient
 
-from openapi2callables.server import app, Ship, Treasure, PirateExtended
+from openapi2callables.server import app
 
 
 @pytest.fixture
@@ -49,6 +49,7 @@ def test_create_ship_valid_api_key(client):
     assert response.status_code == 201
     assert response.json()["name"] == "Black Pearl"
 
+
 def test_create_ship_invalid_api_key(client):
     response = client.post(
         "/ships",
@@ -56,6 +57,7 @@ def test_create_ship_invalid_api_key(client):
         headers={"X-API-KEY": "invalid-key"},
     )
     assert response.status_code == 401
+
 
 def test_get_ships_pagination_and_sorting(client):
     client.post(
@@ -72,6 +74,7 @@ def test_get_ships_pagination_and_sorting(client):
     assert response.status_code == 200
     assert len(response.json()) == 1
 
+
 def test_get_ship_by_id(client):
     client.post(
         "/ships",
@@ -82,6 +85,7 @@ def test_get_ship_by_id(client):
     assert response.status_code == 200
     assert response.json()["name"] == "Black Pearl"
 
+
 def test_create_treasure(client):
     response = client.post(
         "/treasures",
@@ -89,6 +93,7 @@ def test_create_treasure(client):
     )
     assert response.status_code == 200
     assert response.json()["name"] == "Gold Chest"
+
 
 def test_create_extended_pirate(client):
     response = client.post(

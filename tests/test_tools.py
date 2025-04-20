@@ -1,6 +1,9 @@
-import pytest
-from openapi2callables.tools import Tool, LocalTool, APITool
 from unittest.mock import Mock
+
+import pytest
+
+from openapi2callables.tools import APITool, LocalTool
+
 
 def test_tool_to_tool_spec():
     tool = LocalTool(
@@ -16,6 +19,7 @@ def test_tool_to_tool_spec():
     assert "param1" in spec["function"]["parameters"]["properties"]
     assert "param2" in spec["function"]["parameters"]["properties"]
 
+
 def test_local_tool_call():
     tool = LocalTool(
         operationId="add",
@@ -25,6 +29,7 @@ def test_local_tool_call():
     )
     assert tool(1) == 2
 
+
 def test_api_tool_requires_auth():
     tool = APITool(
         operationId="test_api",
@@ -33,6 +38,7 @@ def test_api_tool_requires_auth():
         access_token_name="api_key",
     )
     assert tool.requires_auth is True
+
 
 def test_api_tool_resolve_access_token():
     tool = APITool(
@@ -44,6 +50,7 @@ def test_api_tool_resolve_access_token():
     )
     assert tool.resolve_access_token({}) == "test_token"
 
+
 def test_api_tool_validate_parameter_type():
     tool = APITool(
         operationId="test_api",
@@ -53,6 +60,7 @@ def test_api_tool_validate_parameter_type():
     tool.validate_parameter_type("param1", 123)  # Should not raise an error
     with pytest.raises(TypeError):
         tool.validate_parameter_type("param1", "not an integer")
+
 
 def test_api_tool_prepare_request_data():
     tool = APITool(
@@ -68,6 +76,7 @@ def test_api_tool_prepare_request_data():
     assert path == "/test/1"
     assert params == {"query_param": "test"}
 
+
 def test_api_tool_handle_response():
     tool = APITool(
         operationId="test_api",
@@ -78,6 +87,7 @@ def test_api_tool_handle_response():
     mock_response.status_code = 200
     mock_response.json.return_value = {"key": "value"}
     assert tool.handle_response(mock_response) == {"key": "value"}
+
 
 def test_api_tool_call():
     tool = APITool(
@@ -94,6 +104,7 @@ def test_api_tool_call():
     response = tool(client=mock_client)
     assert response == {"success": True}
 
+
 def test_tool_requires_confirmation():
     tool = LocalTool(
         operationId="test_tool",
@@ -102,6 +113,7 @@ def test_tool_requires_confirmation():
         tags={"requires-confirmation"},
     )
     assert tool.requires_confirmation is True
+
 
 def test_tool_to_tool_spec_with_required_params():
     tool = LocalTool(
@@ -115,6 +127,7 @@ def test_tool_to_tool_spec_with_required_params():
     spec = tool.to_tool_spec()
     assert spec["function"]["parameters"]["required"] == ["param1"]
 
+
 def test_api_tool_post_init_with_access_token():
     tool = APITool(
         operationId="test_api",
@@ -125,6 +138,7 @@ def test_api_tool_post_init_with_access_token():
     assert "api_key" in tool.parameters
     assert tool.parameters["api_key"]["description"].endswith("NEVER ask a user for this!)")
 
+
 def test_api_tool_requires_auth_with_security_schemes():
     tool = APITool(
         operationId="test_api",
@@ -133,6 +147,7 @@ def test_api_tool_requires_auth_with_security_schemes():
         security_schemes={"apiKeyAuth": {"type": "apiKey"}},
     )
     assert tool.requires_auth is True
+
 
 def test_api_tool_resolve_access_token_priority():
     tool = APITool(
@@ -145,6 +160,7 @@ def test_api_tool_resolve_access_token_priority():
     assert tool.resolve_access_token({"api_key": "runtime_token"}) == "runtime_token"
     assert tool.resolve_access_token({}) == "default_token"
 
+
 def test_api_tool_validate_parameter_type_edge_cases():
     tool = APITool(
         operationId="test_api",
@@ -155,6 +171,7 @@ def test_api_tool_validate_parameter_type_edge_cases():
     tool.validate_parameter_type("param1", "test")  # Should not raise an error
     with pytest.raises(TypeError):
         tool.validate_parameter_type("param1", 12.34)
+
 
 def test_api_tool_prepare_request_data_with_all_types():
     tool = APITool(
@@ -170,13 +187,20 @@ def test_api_tool_prepare_request_data_with_all_types():
         },
     )
     path, params, headers, cookies, body, files = tool.prepare_request_data(
-        {"id": 1, "query_param": "test", "header_param": "header", "cookie_param": "cookie", "body_param": {"key": "value"}}
+        {
+            "id": 1,
+            "query_param": "test",
+            "header_param": "header",
+            "cookie_param": "cookie",
+            "body_param": {"key": "value"},
+        }
     )
     assert path == "/test/1"
     assert params == {"query_param": "test"}
     assert headers == {"header_param": "header"}
     assert cookies == {"cookie_param": "cookie"}
     assert body == {"body_param": {"key": "value"}}
+
 
 def test_api_tool_handle_response_error():
     tool = APITool(
@@ -190,6 +214,7 @@ def test_api_tool_handle_response_error():
     result = tool.handle_response(mock_response)
     assert result["error"] is True
     assert result["status_code"] == 400
+
 
 def test_api_tool_call_with_mock_client():
     tool = APITool(

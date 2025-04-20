@@ -1,10 +1,12 @@
 import abc
 import json
+import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Set, Union
+from typing import Any, Callable, Dict, Set
+
 import requests
-import logging
+
 
 @dataclass
 class Tool(abc.ABC):
@@ -106,7 +108,7 @@ class LocalTool(Tool):
 class APITool(Tool):
     """
     Class instance for executing remote API calls as simple Callables.
-    
+
     Enhanced to handle complex OpenAPI features including:
     - Authentication (API keys, tokens, OAuth)
     - Complex request bodies with nested objects
@@ -170,15 +172,14 @@ class APITool(Tool):
         """
         if self.access_token_name is not None or self.security_schemes:
             return True
-        
+
         # Check for auth-related parameters
         for param_name, param_spec in self.parameters.items():
             if param_spec.get("_type") in ["header", "cookie"] and any(
-                auth_term in param_name.lower() 
-                for auth_term in ["api_key", "token", "auth", "key", "secret"]
+                auth_term in param_name.lower() for auth_term in ["api_key", "token", "auth", "key", "secret"]
             ):
                 return True
-        
+
         return False
 
     def resolve_access_token(self, kwds) -> str:
@@ -199,12 +200,11 @@ class APITool(Tool):
         raise ValueError(f"No {self.service_name} API key found; cannot make request")
 
     def validate_parameter_type(self, param_name, param_value, expected_type=None):
-
         if expected_type is None:
             # Get the expected type from the parameters
             expected_type = self.parameters[param_name]["type"]
 
-        if isinstance(expected_type, list): # OneOf/AnyOf
+        if isinstance(expected_type, list):  # OneOf/AnyOf
             if len(expected_type) == 1:
                 expected_type = expected_type[0]
             else:
@@ -221,7 +221,9 @@ class APITool(Tool):
                             return
                         except TypeError:
                             continue
-                raise TypeError(f"Invalid type for parameter {param_name}: expected one of {expected_type}, got {type(param_value).__name__}")
+                raise TypeError(
+                    f"Invalid type for parameter {param_name}: expected one of {expected_type}, got {type(param_value).__name__}"
+                )
 
         if expected_type == "integer":
             expected_type = int
@@ -237,17 +239,19 @@ class APITool(Tool):
             logging.warning(f"Unknown type for parameter {param_name}: {expected_type}")
             expected_type = eval(expected_type)
         if not isinstance(param_value, expected_type):
-            raise TypeError(f"Invalid type for parameter {param_name}: expected {expected_type}, got {type(param_value).__name__}")
-        
+            raise TypeError(
+                f"Invalid type for parameter {param_name}: expected {expected_type}, got {type(param_value).__name__}"
+            )
+
         return expected_type
 
     def prepare_request_data(self, kwds):
         """
         Prepare request data from keyword arguments.
-        
+
         Args:
             kwds: Keyword arguments passed to the tool
-            
+
         Returns:
             Tuple of (path, params, headers, cookies, body, files)
         """
@@ -257,7 +261,7 @@ class APITool(Tool):
         headers = {}
         cookies = self.cookies.copy()
         files = None
-        
+
         # Process shadowed keys (parameters with _body suffix)
         kwds_list = list(kwds.items())
         shadowed_keys = {k: k[:-5] for k in self.parameters.keys() if k.endswith("_body")}
@@ -266,11 +270,11 @@ class APITool(Tool):
             for key, kwd in shadowed_keys.items():
                 if kwd in kwds:
                     kwds_list.append((key, kwds[kwd]))
-        
+
         # Set default content type if not overridden
         if self.content_type and "Content-Type" not in headers:
             headers["Content-Type"] = self.content_type
-            
+
         # Set accept header if specified
         if self.accept and "Accept" not in headers:
             headers["Accept"] = self.accept
@@ -285,20 +289,20 @@ class APITool(Tool):
         for param_name, param_value in kwds.items():
             if param_name in self.parameters:
                 self.validate_parameter_type(param_name, param_value)
-        
+
         # Process parameters based on their type
         for k, v in kwds_list:
             if k not in self.parameters:
                 logging.warning(f"Unknown parameter: {k}, available parameters: {list(self.parameters.keys())}")
                 continue
-                
+
             param_type = self.parameters[k]["_type"]
-            
+
             if param_type == "body":
                 # Handle body parameters
                 if k.endswith("_body"):
                     k = k[:-5]
-                
+
                 # Handle nested objects and arrays
                 if isinstance(v, dict) and isinstance(self.parameters[k].get("type"), dict):
                     # This is a complex object, add it directly to the body
@@ -329,7 +333,7 @@ class APITool(Tool):
                 # Handle form data
                 if files is None:
                     files = {}
-                
+
                 if hasattr(v, "read"):
                     # This is a file-like object
                     files[k] = v
@@ -341,23 +345,23 @@ class APITool(Tool):
                         if not body:
                             body = {}
                         body[k] = v
-        
+
         return path, params, headers, cookies, body, files
 
     def handle_response(self, response):
         """
         Handle the response from the API.
-        
+
         Args:
             response: The response object
-            
+
         Returns:
             The processed response data
         """
         # Check for error status codes
         if hasattr(response, "status_code") and response.status_code >= 400:
             logging.error(f"Error response: {response.status_code} - {response.text}")
-            
+
             # Try to parse error response
             try:
                 error_data = response.json()
@@ -365,29 +369,22 @@ class APITool(Tool):
                     "error": True,
                     "status_code": response.status_code,
                     "message": error_data.get("message", error_data.get("error", response.text)),
-                    "data": error_data
+                    "data": error_data,
                 }
             except json.JSONDecodeError:
-                return {
-                    "error": True,
-                    "status_code": response.status_code,
-                    "message": response.text
-                }
-        
+                return {"error": True, "status_code": response.status_code, "message": response.text}
+
         # Process successful response
         if hasattr(response, "json"):
             try:
                 return response.json()
             except json.JSONDecodeError:
                 content_type = response.headers.get("Content-Type", "")
-                
+
                 if "text/plain" in content_type:
                     return response.text
                 elif "text/html" in content_type:
-                    return {
-                        "content_type": "text/html",
-                        "data": response.text
-                    }
+                    return {"content_type": "text/html", "data": response.text}
                 else:
                     return response.text
         else:
@@ -397,21 +394,20 @@ class APITool(Tool):
     def __call__(self, client=requests.request, *args, **kwds):
         """
         Execute the API call.
-        
+
         Args:
             client: The HTTP client to use (defaults to requests.request)
             *args: Positional arguments (ignored)
             **kwds: Keyword arguments for the API call
-            
+
         Returns:
             The processed response from the API
         """
         logging.info(f"Calling {self.operationId} with {kwds}")
-        
 
         # Prepare request data
         path, params, headers, cookies, body, files = self.prepare_request_data(kwds)
-        
+
         # Handle authentication if needed
         if self.requires_auth and self.access_token_name:
             try:
@@ -426,7 +422,7 @@ class APITool(Tool):
             except ValueError as e:
                 logging.error(f"Authentication error: {e}")
                 return {"error": True, "message": str(e)}
-        
+
         # Determine request data based on content type
         request_kwargs = {
             "params": params,
@@ -434,7 +430,7 @@ class APITool(Tool):
             "cookies": cookies,
             "timeout": self.timeout,
         }
-        
+
         if files:
             # If we have files, don't set json parameter
             request_kwargs["files"] = files
@@ -443,28 +439,24 @@ class APITool(Tool):
         elif body:
             # If we have a body but no files, use json parameter
             request_kwargs["json"] = body
-        
+
         # Add follow_redirects for requests compatibility
         if hasattr(client, "__module__") and "requests" in client.__module__:
             request_kwargs["allow_redirects"] = self.follow_redirects
-        
+
         # Execute request with retry logic
         retry_count = 0
         max_retries = self.retry_count
         backoff = self.retry_backoff
-        
+
         while True:
             try:
-                response = client(
-                    self.method,
-                    f"{self.base_url}{path}",
-                    **request_kwargs
-                )
-                
+                response = client(self.method, f"{self.base_url}{path}", **request_kwargs)
+
                 return self.handle_response(response)
             except Exception as e:
                 logging.error(f"Error making request: {e}", exc_info=True)
-                
+
                 if retry_count < max_retries:
                     retry_count += 1
                     retry_delay = backoff * (2 ** (retry_count - 1))  # Exponential backoff

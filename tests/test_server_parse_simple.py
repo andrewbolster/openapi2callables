@@ -32,9 +32,17 @@ def schema(client):
         # Test GET with no parameters
         ("pirate_endpoint_get_pirate_get", {}, "Arr, matey! Welcome to the pirate endpoint!"),
         # Test GET with path parameter
-        ("pirate_endpoint_name_urlparam_pirate__name__get", {"name": "Jack Sparrow"}, "Arr, matey! Welcome to the pirate endpoint, Jack Sparrow!"),
+        (
+            "pirate_endpoint_name_urlparam_pirate__name__get",
+            {"name": "Jack Sparrow"},
+            "Arr, matey! Welcome to the pirate endpoint, Jack Sparrow!",
+        ),
         # Test POST with body parameter
-        ("pirate_endpoint_body_post_pirate_post", {"name": "Blackbeard"}, "Arr, matey! Welcome to the pirate endpoint, Blackbeard!"),
+        (
+            "pirate_endpoint_body_post_pirate_post",
+            {"name": "Blackbeard"},
+            "Arr, matey! Welcome to the pirate endpoint, Blackbeard!",
+        ),
     ],
 )
 def test_api_tool(client, schema, operation_id, params, expected_response):
@@ -44,6 +52,7 @@ def test_api_tool(client, schema, operation_id, params, expected_response):
 
     result = api_tool(client=client.request, **params)
     assert result == expected_response
+
 
 @pytest.mark.parametrize(
     "operation_id, params, expected_error",
@@ -169,7 +178,7 @@ def test_parse_spec_post(schema):
             "skills": {
                 "_type": "body",
                 "required": False,
-                "type": {'items': 'string', 'type': 'array'},
+                "type": {"items": "string", "type": "array"},
                 "description": "",
             },
             "bounty": {
@@ -181,7 +190,7 @@ def test_parse_spec_post(schema):
             "is_active": {
                 "_type": "body",
                 "required": False,
-                "type": 'boolean',
+                "type": "boolean",
                 "description": "",
             },
         },
@@ -189,7 +198,6 @@ def test_parse_spec_post(schema):
         "tags": [],
         "deprecated": False,
     }
-    
 
     assert operationId in tools
     assert tools[operationId]["path"] == expected_result["path"]
@@ -255,7 +263,7 @@ def test_parse_spec_put(schema):
             "skills": {
                 "_type": "body",
                 "required": False,
-                "type": {'items': 'string', 'type': 'array'},
+                "type": {"items": "string", "type": "array"},
                 "description": "",
             },
             "bounty": {
@@ -267,7 +275,7 @@ def test_parse_spec_put(schema):
             "is_active": {
                 "_type": "body",
                 "required": False,
-                "type": 'boolean',
+                "type": "boolean",
                 "description": "",
             },
         },
@@ -441,7 +449,7 @@ def test_parse_spec_add(schema):
                 "type": ["string"],
                 "description": "",
             },
-                        "rank": {
+            "rank": {
                 "_type": "body",
                 "required": False,
                 "type": ["string"],
@@ -456,7 +464,7 @@ def test_parse_spec_add(schema):
             "skills": {
                 "_type": "body",
                 "required": False,
-                "type": {'items': 'string', 'type': 'array'},
+                "type": {"items": "string", "type": "array"},
                 "description": "",
             },
             "bounty": {
@@ -468,7 +476,7 @@ def test_parse_spec_add(schema):
             "is_active": {
                 "_type": "body",
                 "required": False,
-                "type": 'boolean',
+                "type": "boolean",
                 "description": "",
             },
         },

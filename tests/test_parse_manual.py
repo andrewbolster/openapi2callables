@@ -50,6 +50,7 @@ def test_parse_spec_basic():
     result = parse_spec(spec)
     assert result == expected_result
 
+
 def test_parse_spec_nested_objects():
     spec = {
         "paths": {
@@ -89,6 +90,7 @@ def test_parse_spec_nested_objects():
     assert "create_ship_post" in result
     assert result["create_ship_post"]["parameters"]["details"]["type"]["type"] == "object"
 
+
 def test_parse_spec_enums():
     spec = {
         "paths": {
@@ -114,4 +116,3 @@ def test_parse_spec_enums():
     result = parse_spec(spec)
     assert "update_rank_put" in result
     assert result["update_rank_put"]["parameters"]["rank"]["enum"] == ["captain", "first_mate"]
-
