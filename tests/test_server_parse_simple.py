@@ -26,6 +26,43 @@ def schema(client):
     return response.json()
 
 
+@pytest.mark.parametrize(
+    "operation_id, params, expected_response",
+    [
+        # Test GET with no parameters
+        ("pirate_endpoint_get_pirate_get", {}, "Arr, matey! Welcome to the pirate endpoint!"),
+        # Test GET with path parameter
+        ("pirate_endpoint_name_urlparam_pirate__name__get", {"name": "Jack Sparrow"}, "Arr, matey! Welcome to the pirate endpoint, Jack Sparrow!"),
+        # Test POST with body parameter
+        ("pirate_endpoint_body_post_pirate_post", {"name": "Blackbeard"}, "Arr, matey! Welcome to the pirate endpoint, Blackbeard!"),
+    ],
+)
+def test_api_tool(client, schema, operation_id, params, expected_response):
+    tools = parse_spec(schema)
+    tool = tools[operation_id]
+    api_tool = APITool(operationId=operation_id, base_url=client.base_url, **tool)
+
+    result = api_tool(client=client.request, **params)
+    assert result == expected_response
+
+@pytest.mark.parametrize(
+    "operation_id, params, expected_error",
+    [
+        # Missing required parameter
+        ("pirate_endpoint_name_urlparam_pirate__name__get", {}, ValueError),
+        # Invalid parameter type
+        ("pirate_endpoint_body_post_pirate_post", {"name": 123}, TypeError),
+    ],
+)
+def test_api_tool_errors(client, schema, operation_id, params, expected_error):
+    tools = parse_spec(schema)
+    tool = tools[operation_id]
+    api_tool = APITool(operationId=operation_id, base_url=client.base_url, **tool)
+
+    with pytest.raises(expected_error):
+        api_tool(client=client.request, **params)
+
+
 def test_parse_spec_get(schema):
     operationId = "pirate_endpoint_get_pirate_get"
     tools = parse_spec(schema)
@@ -117,9 +154,42 @@ def test_parse_spec_post(schema):
                 "type": ["string"],
                 "description": "",
             },
+            "rank": {
+                "_type": "body",
+                "required": False,
+                "type": ["string"],
+                "description": "",
+            },
+            "joined_date": {
+                "_type": "body",
+                "required": False,
+                "type": ["string"],
+                "description": "",
+            },
+            "skills": {
+                "_type": "body",
+                "required": False,
+                "type": {'items': 'string', 'type': 'array'},
+                "description": "",
+            },
+            "bounty": {
+                "_type": "body",
+                "required": False,
+                "type": ["number"],
+                "description": "",
+            },
+            "is_active": {
+                "_type": "body",
+                "required": False,
+                "type": 'boolean',
+                "description": "",
+            },
         },
         "responses": {"200": {"description": "Successful response"}},
+        "tags": [],
+        "deprecated": False,
     }
+    
 
     assert operationId in tools
     assert tools[operationId]["path"] == expected_result["path"]
@@ -168,6 +238,36 @@ def test_parse_spec_put(schema):
                 "_type": "body",
                 "required": False,
                 "type": ["string"],
+                "description": "",
+            },
+            "rank": {
+                "_type": "body",
+                "required": False,
+                "type": ["string"],
+                "description": "",
+            },
+            "joined_date": {
+                "_type": "body",
+                "required": False,
+                "type": ["string"],
+                "description": "",
+            },
+            "skills": {
+                "_type": "body",
+                "required": False,
+                "type": {'items': 'string', 'type': 'array'},
+                "description": "",
+            },
+            "bounty": {
+                "_type": "body",
+                "required": False,
+                "type": ["number"],
+                "description": "",
+            },
+            "is_active": {
+                "_type": "body",
+                "required": False,
+                "type": 'boolean',
                 "description": "",
             },
         },
@@ -265,7 +365,14 @@ def test_execute_spec_search(client, schema):
     client.post("/add_pirate", json={"name": "Jack", "age": 30, "ship": "Black Pearl"})
 
     result = api_tool(client=client.request, ship="Black Pearl")
-    assert result == [{"name": "Jack", "age": 30, "ship": "Black Pearl"}]
+    # Assert that _at least_ the configured fields appear in the result
+    assert len(result) > 0
+    in_result = False
+    for pirate in result:
+        if pirate["name"] == "Jack" and pirate["age"] == 30 and pirate["ship"] == "Black Pearl":
+            in_result = True
+            break
+    assert in_result, "Expected pirate not found in the result"
 
 
 def test_parse_spec_get_all(schema):
@@ -296,7 +403,14 @@ def test_execute_spec_get_all(client, schema):
     client.post("/add_pirate", json={"name": "Jack", "age": 30, "ship": "Black Pearl"})
 
     result = api_tool(client=client.request)
-    assert {"name": "Jack", "age": 30, "ship": "Black Pearl"} in result
+    # Assert that _at least_ the configured fields appear in the result
+    assert len(result) > 0
+    in_result = False
+    for pirate in result:
+        if pirate["name"] == "Jack" and pirate["age"] == 30 and pirate["ship"] == "Black Pearl":
+            in_result = True
+            break
+    assert in_result, "Expected pirate not found in the result"
 
 
 def test_parse_spec_add(schema):
@@ -325,6 +439,36 @@ def test_parse_spec_add(schema):
                 "_type": "body",
                 "required": False,
                 "type": ["string"],
+                "description": "",
+            },
+                        "rank": {
+                "_type": "body",
+                "required": False,
+                "type": ["string"],
+                "description": "",
+            },
+            "joined_date": {
+                "_type": "body",
+                "required": False,
+                "type": ["string"],
+                "description": "",
+            },
+            "skills": {
+                "_type": "body",
+                "required": False,
+                "type": {'items': 'string', 'type': 'array'},
+                "description": "",
+            },
+            "bounty": {
+                "_type": "body",
+                "required": False,
+                "type": ["number"],
+                "description": "",
+            },
+            "is_active": {
+                "_type": "body",
+                "required": False,
+                "type": 'boolean',
                 "description": "",
             },
         },

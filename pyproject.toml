@@ -29,6 +29,7 @@ dependencies = [
     "uvicorn>=0.34.0,<1.0.0",
     "pyyaml>=6.0,<7.0",
     "click>=8.0.0,<9.0.0",
+    "pydantic[email]>=2.10.6",
 ]
 keywords = ["openapi", "fastapi", "api", "llm", "tools", "openai"]
 
@@ -114,3 +115,8 @@ commit_args = ""
 setup_hooks = []
 pre_commit_hooks = []
 post_commit_hooks = []
+
+[dependency-groups]
+dev = [
+    "pytest-icdiff>=0.9",
+]
