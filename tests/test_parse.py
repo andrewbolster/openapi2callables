@@ -141,6 +141,95 @@ def test_parse_spec_with_security():
     assert result["secure_get"]["security"] == [{"apiKeyAuth": []}]
 
 
+def test_parse_spec_xquik_search_fixture():
+    spec = {
+        "openapi": "3.1.0",
+        "info": {"title": "Xquik API", "version": "1.0"},
+        "servers": [{"url": "https://xquik.com"}],
+        "paths": {
+            "/api/v1/x/tweets/search": {
+                "get": {
+                    "operationId": "searchTweets",
+                    "summary": "Search Tweets",
+                    "security": [{"apiKey": []}],
+                    "parameters": [
+                        {
+                            "name": "query",
+                            "in": "query",
+                            "required": True,
+                            "schema": {"type": "string"},
+                        }
+                    ],
+                    "responses": {
+                        "200": {
+                            "description": "Search results",
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "object",
+                                        "required": ["data"],
+                                        "properties": {
+                                            "data": {
+                                                "type": "array",
+                                                "items": {
+                                                    "$ref": "#/components/schemas/Tweet",
+                                                },
+                                            }
+                                        },
+                                    }
+                                }
+                            },
+                        }
+                    },
+                }
+            }
+        },
+        "components": {
+            "schemas": {
+                "Tweet": {
+                    "type": "object",
+                    "required": ["id", "text"],
+                    "properties": {
+                        "id": {"type": "string"},
+                        "text": {"type": "string"},
+                    },
+                }
+            },
+            "securitySchemes": {
+                "apiKey": {
+                    "type": "apiKey",
+                    "name": "x-api-key",
+                    "in": "header",
+                }
+            },
+        },
+    }
+
+    result = parse_spec(spec)
+
+    assert result["searchTweets"]["path"] == "/api/v1/x/tweets/search"
+    assert result["searchTweets"]["method"] == "get"
+    assert result["searchTweets"]["security"] == [{"apiKey": []}]
+    assert result["searchTweets"]["parameters"]["query"]["type"] == "string"
+    assert result["searchTweets"]["responses"]["200"]["schema"] == {
+        "type": "object",
+        "properties": {
+            "data": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": "string",
+                        "text": "string",
+                    },
+                    "required": ["id", "text"],
+                },
+            }
+        },
+        "required": ["data"],
+    }
+
+
 def test_parse_spec_with_complex_request_body():
     spec = {
         "paths": {
