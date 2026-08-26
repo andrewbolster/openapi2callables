@@ -133,9 +133,14 @@ def parse_spec(
                     # Initialize parameters dictionary
                     parameters = {}
 
-                    # Process path, query, header, and cookie parameters
-                    if "parameters" in method_data:
-                        for param in method_data["parameters"]:
+                    # Process path-level parameters first, then let operation-level
+                    # definitions override matching name and location pairs.
+                    parameter_definitions = {
+                        (param["name"], param.get("in", "query")): param
+                        for param in [*path_data.get("parameters", []), *method_data.get("parameters", [])]
+                    }
+                    if parameter_definitions:
+                        for param in parameter_definitions.values():
                             param_name = param["name"]
                             param_in = param.get("in", "query")
                             param_required = param.get("required", False)
